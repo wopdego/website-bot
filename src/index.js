@@ -338,6 +338,89 @@ app.get('/api/receptionist/stats', (req, res) => {
   });
 });
 
+app.get('/dashboard', (req, res) => {
+  const all = getAllLeads();
+  const rows = all.map(l => `
+    <tr>
+      <td>${l.businessName}</td>
+      <td>${l.phone || ''}</td>
+      <td>${l.email || ''}</td>
+      <td><span class="status status-${l.status}">${l.status}</span></td>
+      <td>${l.offerStage || 'website'}</td>
+      <td>${l.language || 'en'}</td>
+      <td>${l.twilioPhoneNumber || ''}</td>
+      <td>${l.callCount || 0}</td>
+      <td>${l.appointmentsBooked || 0}</td>
+      <td>${l.createdAt ? new Date(l.createdAt).toLocaleDateString() : ''}</td>
+      <td>
+        ${l.stripeSubscriptionId
+          ? `<a href="https://dashboard.stripe.com/subscriptions/${l.stripeSubscriptionId}" target="_blank">View</a>`
+          : ''}
+        ${l.previewUrl ? `<a href="${l.previewUrl}" target="_blank">Preview</a>` : ''}
+        ${l.liveUrl ? `<a href="${l.liveUrl}" target="_blank">Live</a>` : ''}
+      </td>
+    </tr>`).join('');
+
+  const liveCount = all.filter(l => l.status === LeadStatus.RECEPTIONIST_LIVE || l.status === LeadStatus.LIVE).length;
+  const contactedToday = all.filter(l => l.lastOutreachAt && new Date(l.lastOutreachAt).toDateString() === new Date().toDateString()).length;
+  const mrr = all.filter(l => l.status === LeadStatus.RECEPTIONIST_LIVE).length * 299 + all.filter(l => l.status === LeadStatus.LIVE).length * 99;
+
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kevin's Lead Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; padding: 24px; }
+  h1 { font-size: 24px; margin-bottom: 8px; color: #f8fafc; }
+  .contact { color: #94a3b8; margin-bottom: 24px; font-size: 14px; }
+  .contact a { color: #38bdf8; text-decoration: none; }
+  .stats { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat-card { background: #1e293b; border-radius: 12px; padding: 16px 24px; min-width: 120px; }
+  .stat-card .num { font-size: 28px; font-weight: 700; color: #f8fafc; }
+  .stat-card .label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; font-size: 13px; }
+  th { background: #334155; color: #94a3b8; text-align: left; padding: 12px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+  td { padding: 10px 12px; border-bottom: 1px solid #334155; }
+  tr:hover { background: #1e3a5f; }
+  .status { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  .status-new { background: #1e3a5f; color: #60a5fa; }
+  .status-contacted { background: #1e3a5f; color: #fbbf24; }
+  .status-interested { background: #1e3a5f; color: #34d399; }
+  .status-receptionist_live { background: #064e3b; color: #6ee7b7; }
+  .status-live { background: #064e3b; color: #6ee7b7; }
+  .status-declined { background: #3b1e1e; color: #f87171; }
+  a { color: #38bdf8; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .actions { display: flex; gap: 4px; flex-wrap: wrap; }
+  .btn { padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #334155; color: #e2e8f0; text-decoration: none; }
+  .btn:hover { background: #475569; }
+</style>
+</head>
+<body>
+  <h1>Lead Dashboard</h1>
+  <div class="contact">Kevin Regan — <a href="tel:2402702646">240-270-2646</a> | <a href="https://github.com/wopdego/website-bot">GitHub</a> | <a href="/api/receptionist/stats">API Stats</a> | <a href="/health">Health</a></div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="num">${all.length}</div><div class="label">Total Leads</div></div>
+    <div class="stat-card"><div class="num">${liveCount}</div><div class="label">Active Clients</div></div>
+    <div class="stat-card"><div class="num">${contactedToday}</div><div class="label">Contacted Today</div></div>
+    <div class="stat-card"><div class="num">$${mrr}</div><div class="label">Monthly MRR</div></div>
+    <div class="stat-card"><div class="num">${all.reduce((s, l) => s + (l.callCount || 0), 0)}</div><div class="label">Total Calls</div></div>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Business</th><th>Phone</th><th>Email</th><th>Status</th><th>Offer</th><th>Lang</th><th>AI Number</th><th>Calls</th><th>Bookings</th><th>Added</th><th>Links</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</body>
+</html>`);
+});
+
 app.post('/api/leads', (req, res) => {
   try {
     const { businessName, email, phone, industry, location, notes, language } = req.body;
@@ -468,6 +551,7 @@ app.listen(config.bot.port, () => {
   logger.info(`  Website contract:     GET  /website/contract`);
   logger.info(`  Receptionist contract:GET  /receptionist/contract`);
   logger.info(`  Domain register:      POST /api/domain/register`);
+  logger.info(`  Dashboard:            GET  /dashboard`);
 
   const scrapeJob = new CronJob('0 8 * * 1', async () => {
     logger.info('Starting weekly lead scrape...');

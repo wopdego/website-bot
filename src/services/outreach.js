@@ -3,17 +3,17 @@ import { logger } from '../utils/logger.js';
 
 const SMS_TEMPLATES = {
   en: {
-    initial: (biz) => `⚠️ ${biz} is losing customers daily without a website. 78% of people search online before hiring a plumber. I can build you one in 48hrs for $500. Want to see a free preview? Reply YES`,
-    followUp: (biz) => `${biz} — still thinking about a website? Every day without one = missed calls, missed jobs, missed money. I'll have a preview ready today. Reply YES`,
-    receptionist: (biz) => `${biz} misses 1 in 3 calls. That's $10k+/yr in lost jobs. My AI receptionist answers 24/7, books jobs to your calendar automatically. $299/mo. Want a live demo? Reply YES`,
+    initial: (biz) => `⚠️ ${biz} is losing customers daily without a website. 78% of people search online before hiring a plumber. I can build you one in 48hrs for $500. Want a free preview? Reply YES. ~Kevin, 240-270-2646`,
+    followUp: (biz) => `${biz} — still thinking about a website? Every day without one = missed calls, missed jobs, missed money. I'll have a preview ready today. Reply YES. ~Kevin, 240-270-2646`,
+    receptionist: (biz) => `${biz} misses 1 in 3 calls. That's $10k+/yr in lost jobs. My AI receptionist answers 24/7, books jobs to your calendar automatically. $299/mo. Want a live demo? Reply YES. ~Kevin, 240-270-2646`,
     paymentReceived: (biz) => `🚀 ${biz} — payment received! We're building your site now. Preview in 24-48hrs. Get ready for more calls.`,
     previewReady: (biz, url) => `🔥 ${biz} — your site preview is ready! See it here: ${url}. Want changes? Reply. Happy? Type APPROVE and we go live today.`,
     siteLive: (biz, url) => `🎉 ${biz} is LIVE at ${url}! Your $99/mo plan is active. Now every online search finds you. Welcome!`,
   },
   es: {
-    initial: (biz) => `⚠️ ${biz} está perdiendo clientes todos los días sin sitio web. El 78% busca en línea antes de contratar. Se lo hago en 48hrs por $500. ¿Quiere ver una vista previa gratis? Responda SI`,
-    followUp: (biz) => `${biz} — ¿sigue pensando en un sitio web? Cada día sin uno = llamadas perdidas, trabajos perdidos, dinero perdido. Tendré una vista previa lista hoy. Responda SI`,
-    receptionist: (biz) => `${biz} pierde 1 de cada 3 llamadas. Eso es $10k+/año en trabajos perdidos. Mi recepcionista AI contesta 24/7, agenda trabajos a su calendario. $299/mes. ¿Demo? Responda SI`,
+    initial: (biz) => `⚠️ ${biz} está perdiendo clientes sin sitio web. El 78% busca en línea antes de contratar. Se lo hago en 48hrs por $500. ¿Vista previa gratis? Responda SI. ~Kevin, 240-270-2646`,
+    followUp: (biz) => `${biz} — cada día sin web = trabajos perdidos. Tendré una vista previa lista hoy. Responda SI. ~Kevin, 240-270-2646`,
+    receptionist: (biz) => `${biz} pierde 1 de cada 3 llamadas. Mi recepcionista AI contesta 24/7, agenda citas a su calendario. $299/mes. ¿Demo? Responda SI. ~Kevin, 240-270-2646`,
     paymentReceived: (biz) => `🚀 ${biz} — ¡pago recibido! Ya construimos su sitio. Vista previa en 24-48hrs. Prepárese para más llamadas.`,
     previewReady: (biz, url) => `🔥 ${biz} — ¡vista previa lista! Véala aquí: ${url}. ¿Cambios? Responda. ¿Feliz? Escriba APROBAR y publicamos hoy.`,
     siteLive: (biz, url) => `🎉 ¡${biz} ya está EN VIVO en ${url}! Su plan de $99/mes está activo. Ahora cada búsqueda en línea lo encuentra. ¡Bienvenido!`,
@@ -125,7 +125,8 @@ Your payment is confirmed and we're already working on your site. Here's what ha
 Also — while you're thinking about growth, want to add our AI Receptionist? It's cheaper to add now than later. I'll give you a bundled deal if you lock in both today. Reply and ask about it.
 
 Talk soon!
-[Your Name]`,
+Kevin Regan
+240-270-2646`,
     }),
     previewReady: (biz, url) => ({
       subject: `🔥 ${biz} — your new website is ready to preview!`,
@@ -146,7 +147,8 @@ One more thing — this is the perfect time to add our AI Receptionist. While yo
 
 Check your preview and let me know!
 
-[Your Name]`,
+Kevin Regan
+240-270-2646`,
     }),
     siteLive: (biz, url, price) => ({
       subject: `🎉 ${biz} is NOW LIVE! The internet finds you now.`,
@@ -180,7 +182,8 @@ Reply "RECEPTIONIST" and I'll set up a live demo call.
 
 Welcome to 2026, ${biz}. Let's dominate.
 
-[Your Name]`,
+Kevin Regan
+240-270-2646`,
     }),
   },
   es: {
@@ -287,7 +290,8 @@ Su pago está confirmado y ya estamos trabajando en su sitio. Esto es lo que sig
 También — mientras piensa en crecimiento, ¿quiere agregar nuestra Recepcionista AI? Es más barato agregarlo ahora que después. Le doy un precio especial si asegura ambos hoy. Responda y pregunte.
 
 ¡Hablamos pronto!
-[Your Name]`,
+Kevin Regan
+240-270-2646`,
     }),
     previewReady: (biz, url) => ({
       subject: `🔥 ${biz} — ¡su nuevo sitio web está listo para ver!`,
@@ -308,7 +312,8 @@ Una cosa más — este es el momento perfecto para agregar nuestra Recepcionista
 
 ¡Revise su vista previa y avíseme!
 
-[Your Name]`,
+Kevin Regan
+240-270-2646`,
     }),
     siteLive: (biz, url, price) => ({
       subject: `🎉 ¡${biz} ya está EN VIVO! El internet lo encuentra ahora.`,
@@ -342,7 +347,8 @@ Responda "RECEPCIONISTA" y le configuro una demo en vivo.
 
 Bienvenido a 2026, ${biz}. Vamos a dominar.
 
-[Your Name]`,
+Kevin Regan
+240-270-2646`,
     }),
   },
 };
