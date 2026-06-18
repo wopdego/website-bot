@@ -69,7 +69,10 @@ app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), async (r
         const description = lineItem?.description || '';
         logger.info(`Invoice paid for lead ${invLeadId}: ${invoice.id} (${description})`);
 
-        if (description.includes('Website Upfront') || description.includes('website upfront')) {
+        if (description.includes('Bundle') || description.includes('bundle')) {
+          const { handleBundlePaid } = await import('./workflows/receptionist-flow.js');
+          await handleBundlePaid(invLeadId);
+        } else if (description.includes('Website Upfront') || description.includes('website upfront')) {
           await handleUpfrontPayment(invLeadId);
         } else if (description.includes('Website Final') || description.includes('website final')) {
           await handleFinalPayment(invLeadId);
@@ -117,6 +120,22 @@ app.post('/webhooks/twilio', express.urlencoded({ extended: false }), async (req
 
   const positiveWords = ['yes', 'si', 'yeah', 'yep', 'interested', 'me interesa', 'quiero', 'ok', 'sure', 'go ahead', 'approve', 'aprobar', 'si quiero'];
   const isPositive = positiveWords.some(w => body.includes(w));
+
+  const isBundle = body.includes('both') || body.includes('ambos') || body.includes('bundle') || body.includes('paquete') || body.includes('los dos') || body.includes('both services');
+
+  if (isBundle && lead.status === 'contacted') {
+    logger.info(`Bundle interest from ${lead.businessName}`);
+    try {
+      const { handleBundleInterested } = await import('./workflows/receptionist-flow.js');
+      const link = await handleBundleInterested(lead.id);
+      const msg = lead.language === 'es'
+        ? `¡Excelente! Ahorre $500 con el paquete completo. Use este enlace para pagar los $2,997 e iniciamos ambos servicios: ${link}`
+        : `Great! Save $500 with the full bundle. Use this link to pay $2,997 and we'll start both services: ${link}`;
+      return res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?><Response><Message>${msg}</Message></Response>`);
+    } catch (err) {
+      logger.error(`Bundle response error: ${err.message}`);
+    }
+  }
 
   const receptionistInterest =
     body.includes('receptionist') || body.includes('recepcionista') ||
@@ -370,7 +389,7 @@ app.get('/dashboard', (req, res) => {
       <td>${l.phone || ''}</td>
       <td>${l.email || ''}</td>
       <td><span class="status status-${l.status}">${l.status}</span></td>
-      <td>${l.offerStage || 'website'}</td>
+      <td>${l.offerBundle ? 'Bundle' : (l.offerStage || 'website')}</td>
       <td>${l.language || 'en'}</td>
       <td>${l.twilioPhoneNumber || ''}</td>
       <td>${l.callCount || 0}</td>
@@ -385,9 +404,14 @@ app.get('/dashboard', (req, res) => {
       </td>
     </tr>`).join('');
 
-  const liveCount = all.filter(l => l.status === LeadStatus.RECEPTIONIST_LIVE || l.status === LeadStatus.LIVE).length;
+  const liveReceptionists = all.filter(l => l.status === LeadStatus.RECEPTIONIST_LIVE);
+  const liveWebsites = all.filter(l => l.status === LeadStatus.LIVE);
+  const bundleClients = all.filter(l => l.offerBundle && (l.status === LeadStatus.LIVE || l.status === LeadStatus.RECEPTIONIST_LIVE));
+  const liveCount = liveReceptionists.length + liveWebsites.length;
   const contactedToday = all.filter(l => l.lastOutreachAt && new Date(l.lastOutreachAt).toDateString() === new Date().toDateString()).length;
-  const mrr = all.filter(l => l.status === LeadStatus.RECEPTIONIST_LIVE).length * 299 + all.filter(l => l.status === LeadStatus.LIVE).length * 99;
+  const mrr = (liveReceptionists.length - bundleClients.length) * 299
+    + (liveWebsites.length - bundleClients.length) * 99
+    + bundleClients.length * 398;
 
   res.send(`<!DOCTYPE html>
 <html lang="en">

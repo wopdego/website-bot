@@ -3,16 +3,16 @@ import { logger } from '../utils/logger.js';
 
 const SMS_TEMPLATES = {
   en: {
-    initial: (biz) => `⚠️ ${biz} losing customers without a website. 78% search online before hiring. I'll build you one in 48hrs — net-15 terms, $500 start. Reply YES for a free preview. ~Kevin, 240-270-2646`,
-    followUp: (biz) => `${biz} — still thinking? Every day without a site = missed jobs. $500 start on net-15 terms, preview ready today. Reply YES. ~Kevin, 240-270-2646`,
+    initial: (biz) => `⚠️ ${biz} losing customers without a website. 78% search online before hiring. I'll build you one in 48hrs — net-15 terms, $500 start. Add AI receptionist for $2,997 (save $500 bundle). Reply YES (web), RECEPTIONIST, or BOTH. ~Kevin, 240-270-2646`,
+    followUp: (biz) => `${biz} — still thinking? Get site + AI receptionist bundle, save $500. $2,997 setup, $398/mo both. Or site only $500 start. Reply YES, RECEPTIONIST, or BOTH. ~Kevin, 240-270-2646`,
     receptionist: (biz) => `${biz} misses 1 in 3 calls = $10k+/yr lost. AI receptionist answers 24/7, books jobs to your calendar. $299/mo. Net-15 terms on setup. Want a live demo? Reply YES. ~Kevin, 240-270-2646`,
     paymentReceived: (biz) => `🚀 ${biz} — payment received! We're building your site now. Preview in 24-48hrs. Get ready for more calls.`,
     previewReady: (biz, url) => `🔥 ${biz} — your site preview is ready! See it here: ${url}. Want changes? Reply. Happy? Type APPROVE and we go live today.`,
     siteLive: (biz, url) => `🎉 ${biz} is LIVE at ${url}! Your $99/mo plan is active. Now every online search finds you. Welcome!`,
   },
   es: {
-    initial: (biz) => `⚠️ ${biz} pierde clientes sin web. 78% busca antes de contratar. Se la hago en 48hrs — términos net-15, $500 inicio. ¿Vista previa? Responda SI. ~Kevin, 240-270-2646`,
-    followUp: (biz) => `${biz} — cada día sin web = trabajos perdidos. $500 inicio en net-15, preview hoy. Responda SI. ~Kevin, 240-270-2646`,
+    initial: (biz) => `⚠️ ${biz} pierde clientes sin web. 78% busca antes de contratar. Se la hago en 48hrs — net-15, $500 inicio. Agregue recepcionista AI por $2,997 (ahorre $500 paquete). Responda SI (web), RECEPCIONISTA o AMBOS. ~Kevin, 240-270-2646`,
+    followUp: (biz) => `${biz} — paquete sitio + recepcionista AI, ahorre $500. $2,997 setup, $398/mes ambos. O solo sitio $500 inicio. Responda SI, RECEPCIONISTA o AMBOS. ~Kevin, 240-270-2646`,
     receptionist: (biz) => `${biz} pierde 1 de 3 llamadas = $10k+/año perdidos. Recepcionista AI contesta 24/7, agenda citas. $299/mes. Net-15 en setup. ¿Demo? Responda SI. ~Kevin, 240-270-2646`,
     paymentReceived: (biz) => `🚀 ${biz} — ¡pago recibido! Ya construimos su sitio. Vista previa en 24-48hrs. Prepárese para más llamadas.`,
     previewReady: (biz, url) => `🔥 ${biz} — ¡vista previa lista! Véala aquí: ${url}. ¿Cambios? Responda. ¿Feliz? Escriba APROBAR y publicamos hoy.`,

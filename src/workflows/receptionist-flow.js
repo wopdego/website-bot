@@ -7,6 +7,7 @@ import { getOAuthUrl } from '../services/google-calendar.js';
 import { getContractHtml, saveContractPdf } from '../services/contract.js';
 import { provisionDomain } from '../services/cloudflare-domains.js';
 import { callLeadForDemo } from '../services/demo-caller.js';
+import { sendBoth } from '../services/outreach.js';
 
 export { callLeadForDemo };
 
@@ -130,6 +131,105 @@ function extractAreaCode(location) {
     return areaMap[match[1]] || '571';
   }
   return '571';
+}
+
+export async function handleBundleInterested(leadId) {
+  const lead = getLead(leadId);
+  if (!lead) throw new Error('Lead not found');
+
+  let customerId = lead.stripeCustomerId;
+  if (!customerId) {
+    const customer = await createCustomer({
+      email: lead.email || undefined,
+      name: lead.businessName,
+      phone: lead.phone,
+    });
+    customerId = customer.id;
+  }
+
+  updateLead(leadId, { stripeCustomerId: customerId });
+
+  const html = getContractHtml({
+    product: 'receptionist',
+    language: lead.language || 'en',
+    businessName: lead.businessName,
+  });
+  saveContractPdf(leadId, html);
+
+  const invoice = await createInvoice({
+    customerId,
+    priceId: config.stripe.prices.bundleSetup || 'price_bundle_setup',
+    leadId,
+    description: 'Website + AI Receptionist Bundle — save $500',
+    daysUntilDue: 15,
+  });
+
+  updateLead(leadId, { status: LeadStatus.INTERESTED, offerBundle: true });
+
+  const invoiceUrl = invoice.hosted_invoice_url;
+  logger.info(`Bundle invoice sent to ${lead.businessName}: ${invoiceUrl}`);
+  return invoiceUrl;
+}
+
+export function buildBundleSms(lead) {
+  const lang = lead.language || 'en';
+  if (lang === 'es') {
+    return `🔥 Oferta especial: sitio web + recepcionista AI juntos. Ahorre $500. $2,997 setup, $398/mes los dos. Sitio web profesional + AI que contesta 24/7. Responda "AMBOS" para más info. ~Kevin, 240-270-2646`;
+  }
+  return `🔥 Special offer: website + AI receptionist together. Save $500. $2,997 setup, $398/mo for both. Professional site + AI that answers 24/7. Reply "BOTH" for details. ~Kevin, 240-270-2646`;
+}
+
+export async function handleBundlePaid(leadId) {
+  const lead = getLead(leadId);
+  if (!lead) throw new Error('Lead not found');
+
+  logger.info(`Bundle paid for ${lead.businessName}. Starting both builds...`);
+
+  updateLead(leadId, { status: LeadStatus.UPFRONT_PAID, offerStage: 'bundle' });
+
+  await sendBoth(lead.email, lead.phone, 'paymentReceived', { businessName: lead.businessName }, lead.language || 'en');
+
+  updateLead(leadId, { status: LeadStatus.SITE_BUILDING });
+
+  try {
+    const { generateAndSaveSite, deployToVercel } = await import('../services/deploy.js');
+    const { html, previewUrl } = await generateAndSaveSite(lead);
+
+    let vercelInfo = {};
+    try {
+      vercelInfo = await deployToVercel(lead, html);
+    } catch (deployErr) {
+      logger.warn(`Vercel deploy failed: ${deployErr.message}`);
+    }
+
+    const areaCode = extractAreaCode(lead.location);
+    const available = await findAvailableNumber(areaCode);
+    const voiceUrl = `${config.bot.publicUrl}/voice/incoming?leadId=${leadId}`;
+    const purchased = await purchaseNumber(available, voiceUrl);
+
+    updateLead(leadId, {
+      status: LeadStatus.PREVIEW_SENT,
+      previewUrl,
+      liveUrl: vercelInfo.liveUrl || null,
+      phoneNumberSid: purchased.sid,
+      twilioPhoneNumber: purchased.phoneNumber,
+    });
+
+    await sendBoth(lead.email, lead.phone, 'previewReady', {
+      businessName: lead.businessName,
+      previewUrl: vercelInfo.liveUrl || previewUrl,
+    }, lead.language || 'en');
+
+    const msg = lead.language === 'es'
+      ? `Su sitio web está listo para revisar. Su número de recepcionista AI: ${purchased.phoneNumber} ya está activo.`
+      : `Your website is ready to review. Your AI receptionist number: ${purchased.phoneNumber} is already live.`;
+    const { sendSMS } = await import('../services/outreach.js');
+    await sendSMS(lead.phone, msg);
+
+    logger.info(`Bundle preview + number sent to ${lead.businessName}`);
+  } catch (err) {
+    logger.error(`Bundle build failed for ${lead.businessName}: ${err.message}`);
+  }
 }
 
 export function buildReceptionistSms(lead) {

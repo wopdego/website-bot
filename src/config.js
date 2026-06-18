@@ -37,6 +37,7 @@ export const config = {
       monthly: process.env.STRIPE_PRICE_MONTHLY,
       receptionistSetup: process.env.STRIPE_PRICE_RECEPTIONIST_SETUP,
       receptionistMonthly: process.env.STRIPE_PRICE_RECEPTIONIST_MONTHLY,
+      bundleSetup: process.env.STRIPE_PRICE_BUNDLE_SETUP,
     },
   },
   outreach: {

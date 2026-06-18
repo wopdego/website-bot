@@ -86,6 +86,7 @@ export function addLead({ businessName, email, phone, website, industry, locatio
     outreachCount: 0,
     lastOutreachAt: null,
     offerStage: 'website',
+    offerBundle: false,
     phoneNumberSid: null,
     twilioPhoneNumber: null,
     googleRefreshToken: null,
