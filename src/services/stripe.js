@@ -64,6 +64,31 @@ export async function createSubscription(customerId, priceId) {
   return subscription;
 }
 
+export async function createInvoice({ customerId, priceId, leadId, description, daysUntilDue = 15 }) {
+  logger.info(`Creating invoice for customer ${customerId} (price: ${priceId})`);
+
+  const invoiceItem = await stripe.invoiceItems.create({
+    customer: customerId,
+    price: priceId,
+    description: description || '',
+    metadata: { leadId },
+  });
+
+  const invoice = await stripe.invoices.create({
+    customer: customerId,
+    days_until_due: daysUntilDue,
+    collection_method: 'send_invoice',
+    metadata: { leadId },
+    pending_invoice_items_behavior: 'include',
+  });
+
+  const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
+  const sent = await stripe.invoices.sendInvoice(invoice.id);
+
+  logger.info(`Invoice created & sent: ${sent.id} ($${(sent.amount_due / 100).toFixed(2)}, due in ${daysUntilDue} days)`);
+  return sent;
+}
+
 export async function getCustomerByEmail(email) {
   const customers = await stripe.customers.list({ email, limit: 1 });
   return customers.data[0] || null;
@@ -77,4 +102,8 @@ export async function createCustomer({ email, name, phone }) {
 
 export function constructWebhookEvent(body, signature) {
   return stripe.webhooks.constructEvent(body, signature, config.stripe.webhookSecret);
+}
+
+export function getStripe() {
+  return stripe;
 }

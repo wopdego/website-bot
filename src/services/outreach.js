@@ -3,17 +3,17 @@ import { logger } from '../utils/logger.js';
 
 const SMS_TEMPLATES = {
   en: {
-    initial: (biz) => `⚠️ ${biz} is losing customers daily without a website. 78% of people search online before hiring a plumber. I can build you one in 48hrs for $500. Want a free preview? Reply YES. ~Kevin, 240-270-2646`,
-    followUp: (biz) => `${biz} — still thinking about a website? Every day without one = missed calls, missed jobs, missed money. I'll have a preview ready today. Reply YES. ~Kevin, 240-270-2646`,
-    receptionist: (biz) => `${biz} misses 1 in 3 calls. That's $10k+/yr in lost jobs. My AI receptionist answers 24/7, books jobs to your calendar automatically. $299/mo. Want a live demo? Reply YES. ~Kevin, 240-270-2646`,
+    initial: (biz) => `⚠️ ${biz} losing customers without a website. 78% search online before hiring. I'll build you one in 48hrs — net-15 terms, $500 start. Reply YES for a free preview. ~Kevin, 240-270-2646`,
+    followUp: (biz) => `${biz} — still thinking? Every day without a site = missed jobs. $500 start on net-15 terms, preview ready today. Reply YES. ~Kevin, 240-270-2646`,
+    receptionist: (biz) => `${biz} misses 1 in 3 calls = $10k+/yr lost. AI receptionist answers 24/7, books jobs to your calendar. $299/mo. Net-15 terms on setup. Want a live demo? Reply YES. ~Kevin, 240-270-2646`,
     paymentReceived: (biz) => `🚀 ${biz} — payment received! We're building your site now. Preview in 24-48hrs. Get ready for more calls.`,
     previewReady: (biz, url) => `🔥 ${biz} — your site preview is ready! See it here: ${url}. Want changes? Reply. Happy? Type APPROVE and we go live today.`,
     siteLive: (biz, url) => `🎉 ${biz} is LIVE at ${url}! Your $99/mo plan is active. Now every online search finds you. Welcome!`,
   },
   es: {
-    initial: (biz) => `⚠️ ${biz} está perdiendo clientes sin sitio web. El 78% busca en línea antes de contratar. Se lo hago en 48hrs por $500. ¿Vista previa gratis? Responda SI. ~Kevin, 240-270-2646`,
-    followUp: (biz) => `${biz} — cada día sin web = trabajos perdidos. Tendré una vista previa lista hoy. Responda SI. ~Kevin, 240-270-2646`,
-    receptionist: (biz) => `${biz} pierde 1 de cada 3 llamadas. Mi recepcionista AI contesta 24/7, agenda citas a su calendario. $299/mes. ¿Demo? Responda SI. ~Kevin, 240-270-2646`,
+    initial: (biz) => `⚠️ ${biz} pierde clientes sin web. 78% busca antes de contratar. Se la hago en 48hrs — términos net-15, $500 inicio. ¿Vista previa? Responda SI. ~Kevin, 240-270-2646`,
+    followUp: (biz) => `${biz} — cada día sin web = trabajos perdidos. $500 inicio en net-15, preview hoy. Responda SI. ~Kevin, 240-270-2646`,
+    receptionist: (biz) => `${biz} pierde 1 de 3 llamadas = $10k+/año perdidos. Recepcionista AI contesta 24/7, agenda citas. $299/mes. Net-15 en setup. ¿Demo? Responda SI. ~Kevin, 240-270-2646`,
     paymentReceived: (biz) => `🚀 ${biz} — ¡pago recibido! Ya construimos su sitio. Vista previa en 24-48hrs. Prepárese para más llamadas.`,
     previewReady: (biz, url) => `🔥 ${biz} — ¡vista previa lista! Véala aquí: ${url}. ¿Cambios? Responda. ¿Feliz? Escriba APROBAR y publicamos hoy.`,
     siteLive: (biz, url) => `🎉 ¡${biz} ya está EN VIVO en ${url}! Su plan de $99/mes está activo. Ahora cada búsqueda en línea lo encuentra. ¡Bienvenido!`,
@@ -62,7 +62,7 @@ Let me fix this.
 I build professional websites for plumbers — designed to get you calls. Complete site in 48 hours. Looks great on phone + desktop.
 
 The investment:
-• $500 to start
+• $500 to start (net-15 invoicing — pay in 15 days)
 • $500 when you love it
 • $99/month hosting (updates, security, 24/7 monitoring)
 
@@ -227,7 +227,7 @@ Déjeme arreglar esto.
 Creo sitios web profesionales para plomeros — diseñados para recibir llamadas. Sitio completo en 48 horas. Se ve bien en teléfono y computadora.
 
 La inversión:
-• $500 para empezar
+• $500 para empezar (factura net-15 — pague en 15 días)
 • $500 cuando le encante
 • $99/mes de hospedaje (actualizaciones, seguridad, monitoreo 24/7)
 

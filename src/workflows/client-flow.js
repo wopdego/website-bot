@@ -1,6 +1,6 @@
 import { logger } from '../utils/logger.js';
 import { generateAndSaveSite, deployToVercel } from '../services/deploy.js';
-import { createCheckoutSession, createUpfrontPaymentLink, createFinalPaymentLink, createMonthlySubscription, createCustomer, getCustomerByEmail } from '../services/stripe.js';
+import { createInvoice, createUpfrontPaymentLink, createFinalPaymentLink, createMonthlySubscription, createCustomer, getCustomerByEmail } from '../services/stripe.js';
 import { sendBoth } from '../services/outreach.js';
 import { config } from '../config.js';
 import { LeadStatus, updateLead, getLead } from '../services/leads.js';
@@ -24,12 +24,12 @@ export async function handleLeadInterested(leadId) {
   });
   saveContractPdf(leadId, html);
 
-  const session = await createCheckoutSession({
-    price: config.stripe.prices.upfront,
+  const invoice = await createInvoice({
+    customerId: customer.id,
+    priceId: config.stripe.prices.upfront,
     leadId,
-    customerEmail: lead.email,
-    metadata: { payment_stage: 'upfront' },
-    successUrl: `${config.bot.publicUrl}/website/contract?leadId=${leadId}`,
+    description: 'Website Upfront Deposit — 50% due to start',
+    daysUntilDue: 15,
   });
 
   updateLead(leadId, {
@@ -37,8 +37,9 @@ export async function handleLeadInterested(leadId) {
     stripeCustomerId: customer.id,
   });
 
-  logger.info(`Upfront payment link for ${lead.businessName}: ${session.url}`);
-  return session.url;
+  const invoiceUrl = invoice.hosted_invoice_url;
+  logger.info(`Invoice sent to ${lead.businessName}: ${invoiceUrl}`);
+  return invoiceUrl;
 }
 
 export async function handleUpfrontPayment(leadId) {
@@ -86,9 +87,17 @@ export async function handleApproval(leadId) {
 
   logger.info(`Client approved: ${lead.businessName}`);
 
-  const paymentLink = await createFinalPaymentLink(lead.stripeCustomerId, { leadId });
-  logger.info(`Final payment link for ${lead.businessName}: ${paymentLink}`);
-  return paymentLink;
+  const invoice = await createInvoice({
+    customerId: lead.stripeCustomerId,
+    priceId: config.stripe.prices.final,
+    leadId,
+    description: 'Website Final Payment — 50% due on approval',
+    daysUntilDue: 0,
+  });
+
+  const invoiceUrl = invoice.hosted_invoice_url;
+  logger.info(`Final invoice sent to ${lead.businessName}: ${invoiceUrl}`);
+  return invoiceUrl;
 }
 
 export async function handleFinalPayment(leadId) {

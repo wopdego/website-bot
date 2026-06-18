@@ -56,8 +56,32 @@ app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), async (r
         break;
       }
 
+      case 'invoice.paid': {
+        const invoice = event.data.object;
+        const invLeadId = invoice.metadata?.leadId;
+
+        if (!invLeadId) {
+          logger.info(`Invoice paid (no leadId): ${invoice.id}`);
+          break;
+        }
+
+        const lineItem = Array.isArray(invoice.lines?.data) ? invoice.lines.data.find(l => l.description) : null;
+        const description = lineItem?.description || '';
+        logger.info(`Invoice paid for lead ${invLeadId}: ${invoice.id} (${description})`);
+
+        if (description.includes('Website Upfront') || description.includes('website upfront')) {
+          await handleUpfrontPayment(invLeadId);
+        } else if (description.includes('Website Final') || description.includes('website final')) {
+          await handleFinalPayment(invLeadId);
+        } else if (description.includes('Receptionist Setup') || description.includes('receptionist setup')) {
+          const { handleReceptionistSetupPaid } = await import('./workflows/receptionist-flow.js');
+          await handleReceptionistSetupPaid(invLeadId);
+        }
+        break;
+      }
+
       case 'invoice.payment_succeeded': {
-        logger.info(`Subscription payment succeeded for customer: ${event.data.object.customer}`);
+        logger.info(`Payment succeeded for customer: ${event.data.object.customer}`);
         break;
       }
 

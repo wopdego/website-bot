@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { logger } from '../utils/logger.js';
 import { updateLead, getLead, LeadStatus } from '../services/leads.js';
-import { createCheckoutSession, createCustomer, createSubscription } from '../services/stripe.js';
+import { createInvoice, createCustomer, createSubscription } from '../services/stripe.js';
 import { findAvailableNumber, purchaseNumber, updateVoiceUrl } from '../services/twilio-provision.js';
 import { getOAuthUrl } from '../services/google-calendar.js';
 import { getContractHtml, saveContractPdf } from '../services/contract.js';
@@ -14,22 +14,38 @@ export async function handleReceptionistInterested(leadId) {
   const lead = getLead(leadId);
   if (!lead) throw new Error('Lead not found');
 
-  const setupPrice = config.stripe.prices.receptionistSetup || 'price_receptionist_setup';
+  let customerId = lead.stripeCustomerId;
+  if (!customerId) {
+    const customer = await createCustomer({
+      email: lead.email || undefined,
+      name: lead.businessName,
+      phone: lead.phone,
+    });
+    customerId = customer.id;
+  }
 
-  const session = await createCheckoutSession({
-    price: setupPrice,
+  updateLead(leadId, { stripeCustomerId: customerId });
+
+  const html = getContractHtml({
+    product: 'receptionist',
+    language: lead.language || 'en',
+    businessName: lead.businessName,
+  });
+  saveContractPdf(leadId, html);
+
+  const invoice = await createInvoice({
+    customerId,
+    priceId: config.stripe.prices.receptionistSetup || 'price_receptionist_setup',
     leadId,
-    metadata: { product: 'receptionist', payment_stage: 'receptionist_setup' },
-    customerEmail: lead.email || undefined,
-    successUrl: `${config.bot.publicUrl}/receptionist/contract?leadId=${leadId}`,
+    description: 'AI Receptionist Setup — one-time fee',
+    daysUntilDue: 15,
   });
 
-  updateLead(leadId, {
-    status: LeadStatus.RECEPTIONIST_INTERESTED,
-  });
+  updateLead(leadId, { status: LeadStatus.RECEPTIONIST_INTERESTED });
 
-  logger.info(`Receptionist setup link sent to ${lead.businessName}: ${session.url}`);
-  return session.url;
+  const invoiceUrl = invoice.hosted_invoice_url;
+  logger.info(`Receptionist invoice sent to ${lead.businessName}: ${invoiceUrl}`);
+  return invoiceUrl;
 }
 
 export async function handleReceptionistSetupPaid(leadId) {
